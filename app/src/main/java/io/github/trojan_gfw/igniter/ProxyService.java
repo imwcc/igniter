@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.ref.WeakReference;
 import java.util.Set;
 
 import clash.Clash;
@@ -119,7 +120,8 @@ public class ProxyService extends VpnService implements TestConnection.OnResultL
                 onResult(TUN2SOCKS5_SERVER_HOST, false, 0L, getString(R.string.proxy_service_not_connected));
                 return;
             }
-            new TestConnection(TUN2SOCKS5_SERVER_HOST, tun2socksPort, ProxyService.this).execute(testUrl);
+            new Thread(()-> new TestConnection(TUN2SOCKS5_SERVER_HOST, tun2socksPort,
+                    new TestConnectionCallback(ProxyService.this)).testLatency(testUrl)).start();
         }
 
         @Override
@@ -479,5 +481,20 @@ public class ProxyService extends VpnService implements TestConnection.OnResultL
         shutdown();
         // this is essential for gomobile aar
         android.os.Process.killProcess(android.os.Process.myPid());
+    }
+}
+class TestConnectionCallback implements TestConnection.OnResultListener {
+    private final WeakReference<ProxyService> mServiceRef;
+
+    TestConnectionCallback(ProxyService service) {
+        mServiceRef = new WeakReference<>(service);
+    }
+
+    @Override
+    public void onResult(String testUrl, boolean connected, long delay, String error) {
+        ProxyService service = mServiceRef.get();
+        if (service != null) {
+            service.onResult(testUrl, connected, delay, error);
+        }
     }
 }
