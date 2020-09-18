@@ -1,6 +1,7 @@
 package io.github.trojan_gfw.igniter;
 
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -18,6 +19,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -400,25 +402,14 @@ public class MainActivity extends AppCompatActivity implements TrojanConnection.
             }
         });
         View horseIv = findViewById(R.id.imageView);
-        GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onDown(MotionEvent e) {
-                return true;
-            }
-
-            @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                swayTheHorse();
-                return true;
-            }
-        });
-        horseIv.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+        swayTheHorse(horseIv);
     }
 
-    private void swayTheHorse() {
-        View v = findViewById(R.id.imageView);
-        v.clearAnimation();
-        AnimationUtils.sway(v, 60f, 500L, 4f);
+    private void swayTheHorse(View v) {
+        ObjectAnimator rotate = ObjectAnimator.ofFloat(v, "rotation", -25f, 25f).setDuration(2000);
+        rotate.setRepeatCount(Animation.INFINITE);
+        rotate.setRepeatMode(Animation.REVERSE);
+        rotate.start();
     }
 
     @Override
